@@ -1,62 +1,257 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="row">
-    <!-- قائمة المنتجات -->
-    <div class="col-md-8">
-        <h3>المنتجات المتاحة</h3>
-        <div class="row">
-            {% for p in products %}
-            <div class="col-md-4 mb-3">
-                <div class="card h-100 shadow-sm">
-                    <img src="{{ p.image }}" class="card-img-top" alt="{{ p.name }}">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">{{ p.name }}</h5>
-                        <p class="text-muted mb-1">{{ p.category }}</p>
-                        <p class="fw-bold text-success">{{ p.price }} ر.س</p>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجر البقالة الإلكتروني</title>
+    <!-- خط تجاري حديث -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2e7d32;
+            --primary-hover: #1b5e20;
+            --bg-color: #f4f6f8;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --text-muted: #666666;
+            --border-color: #e0e0e0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding-bottom: 60px;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 2rem;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 2rem solid var(--primary-color);
+            padding-bottom: 0.5rem;
+        }
+
+        /* شبكة المنتجات */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .product-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            background-color: #eee;
+        }
+
+        .product-info {
+            padding: 1rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-category {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .product-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-price {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-top: auto;
+            margin-bottom: 0.75rem;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 0.6rem;
+            border: none;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-disabled {
+            background-color: #ccc;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        /* عربة التسوق */
+        .cart-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            position: sticky;
+            top: 1rem;
+        }
+
+        .cart-items {
+            list-style: none;
+            margin: 1rem 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .cart-total {
+            font-weight: 700;
+            font-size: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            margin: 1rem 0;
+            padding-top: 0.5rem;
+            border-top: 2px solid var(--border-color);
+        }
+
+        .empty-cart {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>بقالة الحي - التوصيل السريع للمنزل</h1>
+    </header>
+
+    <div class="container">
+        <!-- قسم المنتجات -->
+        <main>
+            <h2 class="section-title">المنتجات المتاحة</h2>
+            <div class="products-grid">
+                {% for p in products %}
+                <div class="product-card">
+                    <img src="{{ p.image_url if p.image_url else 'https://via.placeholder.com/200' }}" alt="{{ p.name }}" class="product-image">
+                    <div class="product-info">
+                        <span class="product-category">{{ p.category }}</span>
+                        <h3 class="product-title">{{ p.name }}</h3>
+                        <div class="product-price">{{ p.price }} ر.س</div>
                         
                         {% if p.in_stock %}
-                            <a href="/add_to_cart/{{ p.id }}" class="btn btn-primary btn-sm w-100">إضافة للسلة +</a>
+                        <form action="/add_to_cart" method="POST">
+                            <input type="hidden" name="product_id" value="{{ p.id }}">
+                            <button type="submit" class="btn btn-primary">+ إضافة للسلة</button>
+                        </form>
                         {% else %}
-                            <button class="btn btn-secondary btn-sm w-100" disabled>غير متوفر حالياً</button>
+                        <button class="btn btn-disabled" disabled>غير متوفر حالياً</button>
                         {% endif %}
                     </div>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
-    </div>
+        </main>
 
-    <!-- سلة المشتريات -->
-    <div class="col-md-4">
-        <div class="card shadow-sm">
-            <div class="card-header bg-dark text-white">
-                <h5 class="mb-0">🛍️ عربة التسوق</h5>
-            </div>
-            <div class="card-body">
+        <!-- قسم عربة التسوق -->
+        <aside>
+            <div class="cart-card">
+                <h2 class="section-title" style="margin-bottom:0.5rem;">عربة التسوق</h2>
+                
                 {% if cart %}
-                    <ul class="list-group mb-3">
-                        {% for id, item in cart.items() %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>{{ item.name }}</strong>
-                                <br><small class="text-muted">{{ item.price }} ر.س × {{ item.qty }}</small>
-                            </div>
-                            <span class="badge bg-primary rounded-pill">{{ item.price * item.qty }} ر.س</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    <hr>
-                    <div class="d-flex justify-content-between fw-bold fs-5 mb-3">
-                        <span>الإجمالي:</span>
-                        <span class="text-success">{{ total_price }} ر.س</span>
-                    </div>
-                    <button class="btn btn-success w-100 mb-2">إتمام الطلب الآن</button>
-                    <a href="/clear_cart" class="btn btn-outline-danger btn-sm w-100">تفريغ السلة</a>
+                <ul class="cart-items">
+                    {% for id, item in cart.items() %}
+                    <li class="cart-item">
+                        <div>
+                            <div><strong>{{ item.name }}</strong></div>
+                            <small class="text-muted">{{ item.price }} ر.س × {{ item.qty }}</small>
+                        </div>
+                        <div>{{ item.price * item.qty }} ر.س</div>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <div class="cart-total">
+                    <span>الإجمالي:</span>
+                    <span>{{ total_price }} ر.س</span>
+                </div>
+
+                <a href="/checkout" class="btn btn-primary" style="margin-bottom: 0.5rem;">إتمام الطلب الآن</a>
+                <a href="/clear_cart" class="btn" style="background:#f44336; color:white;">تفريغ السلة</a>
+                
                 {% else %}
-                    <p class="text-center text-muted my-3">السلة فارغة حالياً</p>
+                <p class="empty-cart">السلة فارغة حالياً</p>
                 {% endif %}
             </div>
-        </div>
+        </aside>
     </div>
-</div>
-{% endblock %}
+
+</body>
+</html>
