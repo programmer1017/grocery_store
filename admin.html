@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <!-- نموذج إضافة منتج -->
+    <div class="col-md-4 mb-4">
+        <div class="card p-3 shadow-sm">
+            <h4 class="mb-3">إضافة منتج جديد</h4>
+            <form action="/admin/add" method="POST">
+                <div class="mb-2">
+                    <label>اسم المنتج:</label>
+                    <input type="text" name="name" class="form-control" required>
+                </div>
+                <div class="mb-2">
+                    <label>السعر (ر.س):</label>
+                    <input type="number" step="0.1" name="price" class="form-control" required>
+                </div>
+                <div class="mb-2">
+                    <label>القسم:</label>
+                    <input type="text" name="category" class="form-control" placeholder="مثل: خضار، خفايف..." required>
+                </div>
+                <div class="mb-3">
+                    <label>رابط الصورة (اختياري):</label>
+                    <input type="url" name="image" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-success w-100">إضافة للمتجر</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- جدول التحكم بالمنتجات -->
+    <div class="col-md-8">
+        <div class="card p-3 shadow-sm">
+            <h4>إدارة المنتجات والمخزون</h4>
+            <table class="table table-striped align-middle mt-2">
+                <thead>
+                    <tr>
+                        <th>المنتج</th>
+                        <th>القسم</th>
+                        <th>السعر</th>
+                        <th>الحالة</th>
+                        <th>الإجراء</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in products %}
+                    <tr>
+                        <td>{{ p.name }}</td>
+                        <td>{{ p.category }}</td>
+                        <td>{{ p.price }} ر.س</td>
+                        <td>
+                            {% if p.in_stock %}
+                                <span class="badge bg-success">متوفر</span>
+                            {% else %}
+                                <span class="badge bg-danger">غير متوفر</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="/admin/toggle_stock/{{ p.id }}" class="btn btn-sm btn-outline-dark">
+                                {% if p.in_stock %} تحويل إلى (غير متوفر) {% else %} تحويل إلى (متوفر) {% endif %}
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
