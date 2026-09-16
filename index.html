@@ -1,450 +1,200 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>متجر التوصيل السريع</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #ff385c;
-            --primary-hover: #e02e4c;
-            --bg: #f7f8fa;
-            --surface: #ffffff;
-            --text-main: #111827;
-            --text-sub: #6b7280;
-            --border: #e5e7eb;
-            --radius: 12px;
-            --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-        }
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Tajawal', sans-serif;
-        }
+interface Product {
+  id: number;
+  name: string;
+  category: string;
+  price: number;
+  image: string;
+  inStock: boolean;
+}
 
-        body {
-            background-color: var(--bg);
-            color: var(--text-main);
-            padding-bottom: 40px;
-        }
+export default function HomePage() {
+  const [selectedCategory, setSelectedCategory] = useState("الكل");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [cart, setCart] = useState<{ [key: number]: { product: Product; qty: number } }>({});
 
-        /* Navbar Header */
-        header {
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-        }
+  // 1. جلب المنتجات الحقيقية التي أضفتها من لوحة التحكم
+  const { data: products = [], isLoading } = useQuery<Product[]>({
+    queryKey: ["/api/products"],
+  });
 
-        .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1.5rem;
-        }
+  // 2. جلب معلومات المتجر (رقم الواتساب)
+  const { data: storeInfo } = useQuery<{ whatsapp: string }>({
+    queryKey: ["/api/store-info"],
+  });
 
-        .brand-logo {
-            font-size: 1.6rem;
-            font-weight: 800;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-decoration: none;
-        }
+  // تصفية المنتجات حسب الفئة والبحث
+  const filteredProducts = products.filter((p) => {
+    const matchesCategory = selectedCategory === "الكل" || p.category === selectedCategory;
+    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
-        .location-picker {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: #f3f4f6;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--text-main);
-        }
+  // إضافة منتج للسلة
+  const addToCart = (product: Product) => {
+    setCart((prev) => {
+      const currentQty = prev[product.id]?.qty || 0;
+      return {
+        ...prev,
+        [product.id]: { product, qty: currentQty + 1 },
+      };
+    });
+  };
 
-        .search-box {
-            flex: 1;
-            max-width: 500px;
-            position: relative;
-        }
+  // فتح الواتساب للتواصل أو إرسال الطلب
+  const openWhatsApp = () => {
+    const phone = storeInfo?.whatsapp || "966500000000";
+    let message = "مرحباً، أريد الطلب من البقالة:\n";
+    
+    Object.values(cart).forEach(({ product, qty }) => {
+      message += `- ${product.name} (العدد: ${qty})\n`;
+    });
 
-        .search-box input {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border-radius: 25px;
-            border: 1px solid var(--border);
-            background: #f9fafb;
-            font-size: 0.95rem;
-            outline: none;
-            transition: all 0.2s;
-        }
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, "_blank");
+  };
 
-        .search-box input:focus {
-            border-color: var(--primary);
-            background: var(--surface);
-            box-shadow: 0 0 0 3px rgba(255, 56, 92, 0.1);
-        }
+  const categories = ["الكل", "مشروبات ومياه", "حلويات وسناك", "مخبوزات", "فواكه وخضار", "منتجات الألبان"];
 
-        /* App Container */
-        .app-container {
-            max-width: 1200px;
-            margin: 1.5rem auto;
-            padding: 0 1rem;
-            display: grid;
-            grid-template-columns: 1fr 340px;
-            gap: 2rem;
-        }
+  return (
+    <div style={{ fontFamily: "Tajawal, sans-serif", background: "#f8fafc", minHeight: "100vh", direction: "rtl" }}>
+      
+      {/* الهيدر العلوي */}
+      <header style={{ background: "#ffffff", borderBottom: "1px solid #e2e8f0", padding: "1rem 2rem", sticky: "top", top: 0, zIndex: 50 }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
+          <h1 style={{ color: "#10b981", fontSize: "1.5rem", fontWeight: "bold", margin: 0 }}>🚀 التوصيل السريع</h1>
+          
+          <input
+            type="text"
+            placeholder="ابحث عن منتج..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ flex: 1, maxWidth: "400px", padding: "0.6rem 1rem", borderRadius: "20px", border: "1px solid #cbd5e1", outline: "none" }}
+          />
 
-        @media (max-width: 900px) {
-            .app-container {
-                grid-template-columns: 1fr;
-            }
-            .header-content {
-                flex-wrap: wrap;
-            }
-            .search-box {
-                order: 3;
-                max-width: 100%;
-            }
-        }
-
-        /* Categories Ribbon */
-        .categories-ribbon {
-            display: flex;
-            gap: 0.75rem;
-            overflow-x: auto;
-            padding-bottom: 1rem;
-            margin-bottom: 1.5rem;
-            scrollbar-width: none;
-        }
-
-        .category-chip {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            padding: 0.6rem 1.2rem;
-            border-radius: 20px;
-            font-weight: 500;
-            white-space: nowrap;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .category-chip.active, .category-chip:hover {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        /* Products Grid */
-        .section-header {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-        }
-
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1.25rem;
-        }
-
-        .product-card {
-            background: var(--surface);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            box-shadow: var(--shadow);
-            transition: transform 0.2s;
-        }
-
-        .product-card:hover {
-            transform: translateY(-3px);
-        }
-
-        .badge-fast {
-            position: absolute;
-            top: 0.75rem;
-            right: 0.75rem;
-            background: #10b981;
-            color: white;
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 0.2rem 0.5rem;
-            border-radius: 6px;
-        }
-
-        .product-img {
-            width: 100%;
-            height: 140px;
-            object-fit: contain;
-            margin-bottom: 0.75rem;
-            border-radius: 8px;
-        }
-
-        .product-cat {
-            font-size: 0.8rem;
-            color: var(--text-sub);
-            margin-bottom: 0.25rem;
-        }
-
-        .product-name {
-            font-size: 1rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: var(--text-main);
-        }
-
-        .product-footer {
-            margin-top: auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding-top: 0.5rem;
-        }
-
-        .price-tag {
-            font-size: 1.1rem;
-            font-weight: 800;
-            color: var(--text-main);
-        }
-
-        .price-tag span {
-            font-size: 0.8rem;
-            color: var(--text-sub);
-        }
-
-        .add-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.5rem 0.9rem;
-            border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .add-btn:hover {
-            background: var(--primary-hover);
-        }
-
-        .out-btn {
-            background: #e5e7eb;
-            color: #9ca3af;
-            border: none;
-            padding: 0.5rem 0.9rem;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            cursor: not-allowed;
-        }
-
-        /* Cart Sidebar */
-        .cart-box {
-            background: var(--surface);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            padding: 1.25rem;
-            box-shadow: var(--shadow);
-            position: sticky;
-            top: 90px;
-        }
-
-        .cart-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .cart-items-list {
-            list-style: none;
-            max-height: 280px;
-            overflow-y: auto;
-            margin-bottom: 1rem;
-        }
-
-        .cart-item-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .cart-summary {
-            background: #f9fafb;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-        }
-
-        .summary-line {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-            font-size: 0.95rem;
-        }
-
-        .summary-line.total {
-            font-weight: 800;
-            font-size: 1.1rem;
-            border-top: 1px solid var(--border);
-            padding-top: 0.5rem;
-            margin-bottom: 0;
-            color: var(--primary);
-        }
-
-        .checkout-btn {
-            width: 100%;
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.85rem;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            margin-bottom: 0.5rem;
-        }
-
-        .clear-btn {
-            width: 100%;
-            background: transparent;
-            color: #ef4444;
-            border: 1px solid #fee2e2;
-            padding: 0.5rem;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .empty-state {
-            text-align: center;
-            color: var(--text-sub);
-            padding: 2rem 0;
-        }
-    </style>
-</head>
-<body>
-
-    <header>
-        <div class="header-content">
-            <a href="#" class="brand-logo">
-                🚀 توصيل السريع
-            </a>
-            
-            <div class="location-picker">
-                📍 <span>التوصيل إلى: المنزل - الرياض</span>
-            </div>
-
-            <div class="search-box">
-                <input type="text" placeholder="ابحث عن منتج، خضار، مشروبات...">
-            </div>
+          <button
+            onClick={openWhatsApp}
+            style={{ background: "#25D366", color: "#fff", border: "none", padding: "0.6rem 1.2rem", borderRadius: "20px", fontWeight: "bold", cursor: "pointer" }}
+          >
+            💬 تواصل عبر الواتساب
+          </button>
         </div>
-    </header>
+      </header>
 
-    <div class="app-container">
+      <div style={{ maxWidth: "1200px", margin: "2rem auto", padding: "0 1rem", display: "grid", gridTemplateColumns: "1fr 300px", gap: "2rem" }}>
+        
+        {/* قسم عرض المنتجات */}
         <main>
-            <!-- شريط التصنيفات -->
-            <div class="categories-ribbon">
-                <div class="category-chip active">الكل</div>
-                <div class="category-chip">مشروبات ومياه</div>
-                <div class="category-chip">حلويات وسناك</div>
-                <div class="category-chip">مخبوزات</div>
-                <div class="category-chip">فواكه وخضار</div>
-                <div class="category-chip">منتجات الألبان</div>
-            </div>
+          {/* شريط التصنيفات */}
+          <div style={{ display: "flex", gap: "0.5rem", overflowX: "auto", paddingBottom: "1rem", marginBottom: "1.5rem" }}>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                style={{
+                  padding: "0.5rem 1rem",
+                  borderRadius: "20px",
+                  border: "none",
+                  background: selectedCategory === cat ? "#10b981" : "#ffffff",
+                  color: selectedCategory === cat ? "#ffffff" : "#475569",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  whiteSpace: "nowrap"
+                }}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
 
-            <h2 class="section-header">الأكثر طلباً اليوم</h2>
+          <h2 style={{ fontSize: "1.25rem", color: "#1e293b", marginBottom: "1rem" }}>المنتجات المتاحة</h2>
 
-            <div class="products-grid">
-                {% for p in products %}
-                <div class="product-card">
-                    <span class="badge-fast">⚡ 15 دقيقة</span>
-                    <img src="{{ p.image_url if p.image_url else 'https://via.placeholder.com/150' }}" alt="{{ p.name }}" class="product-img">
-                    <span class="product-cat">{{ p.category }}</span>
-                    <h3 class="product-name">{{ p.name }}</h3>
-                    
-                    <div class="product-footer">
-                        <div class="price-tag">{{ p.price }} <span>ر.س</span></div>
-                        
-                        {% if p.in_stock %}
-                        <form action="/add_to_cart" method="POST">
-                            <input type="hidden" name="product_id" value="{{ p.id }}">
-                            <button type="submit" class="add-btn">+ إضافة</button>
-                        </form>
-                        {% else %}
-                        <button class="out-btn" disabled>نفذت الكمية</button>
-                        {% endif %}
-                    </div>
+          {isLoading ? (
+            <p>جاري تحميل المنتجات...</p>
+          ) : filteredProducts.length === 0 ? (
+            <p style={{ color: "#64748b" }}>لا توجد منتجات مضافة حالياً في هذا القسم.</p>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "1.25rem" }}>
+              {filteredProducts.map((p) => (
+                <div key={p.id} style={{ background: "#ffffff", borderRadius: "12px", padding: "1rem", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column" }}>
+                  
+                  {/* عرض الصورة الحقيقية المرفوعة من لوحة التحكم */}
+                  <img
+                    src={p.image}
+                    alt={p.name}
+                    style={{ width: "100%", height: "130px", objectFit: "cover", borderRadius: "8px", marginBottom: "0.75rem", background: "#f1f5f9" }}
+                  />
+                  
+                  <span style={{ fontSize: "0.75rem", color: "#94a3b8" }}>{p.category}</span>
+                  <h3 style={{ fontSize: "1rem", margin: "0.25rem 0", color: "#0f172a" }}>{p.name}</h3>
+                  <div style={{ fontWeight: "bold", color: "#10b981", margin: "0.5rem 0" }}>{p.price} ر.س</div>
+
+                  <button
+                    onClick={() => addToCart(p)}
+                    style={{
+                      marginTop: "auto",
+                      background: "#10b981",
+                      color: "#fff",
+                      border: "none",
+                      padding: "0.5rem",
+                      borderRadius: "6px",
+                      fontWeight: "bold",
+                      cursor: "pointer"
+                    }}
+                  >
+                    + إضافة للسلة
+                  </button>
                 </div>
-                {% endfor %}
+              ))}
             </div>
+          )}
         </main>
 
+        {/* سلة المشتريات */}
         <aside>
-            <div class="cart-box">
-                <div class="cart-title">
-                    <span>🛒 سلة الطلبات</span>
-                </div>
+          <div style={{ background: "#ffffff", padding: "1.25rem", borderRadius: "12px", border: "1px solid #e2e8f0", sticky: "top", top: "90px" }}>
+            <h3 style={{ margin: "0 0 1rem 0", color: "#0f172a" }}>🛒 سلة الطلبات</h3>
 
-                {% if cart %}
-                <ul class="cart-items-list">
-                    {% for id, item in cart.items() %}
-                    <li class="cart-item-row">
-                        <div>
-                            <div><strong>{{ item.name }}</strong></div>
-                            <small style="color: var(--text-sub);">العدد: {{ item.qty }}</small>
-                        </div>
-                        <div style="font-weight:700;">{{ item.price * item.qty }} ر.س</div>
+            {Object.keys(cart).length === 0 ? (
+              <p style={{ color: "#94a3b8", textAlign: "center", padding: "1rem 0" }}>السلة فارغة حالياً</p>
+            ) : (
+              <>
+                <ul style={{ listStyle: "none", padding: 0, margin: "0 0 1rem 0" }}>
+                  {Object.values(cart).map(({ product, qty }) => (
+                    <li key={product.id} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #f1f5f9", padding: "0.5rem 0" }}>
+                      <div>
+                        <div style={{ fontWeight: "bold", fontSize: "0.9rem" }}>{product.name}</div>
+                        <small style={{ color: "#64748b" }}>{product.price} ر.س × {qty}</small>
+                      </div>
+                      <div style={{ fontWeight: "bold" }}>{product.price * qty} ر.س</div>
                     </li>
-                    {% endfor %}
+                  ))}
                 </ul>
 
-                <div class="cart-summary">
-                    <div class="summary-line">
-                        <span>المجموع:</span>
-                        <span>{{ total_price }} ر.س</span>
-                    </div>
-                    <div class="summary-line">
-                        <span>رسوم التوصيل:</span>
-                        <span style="color:#10b981;">مجاناً</span>
-                    </div>
-                    <div class="summary-line total">
-                        <span>الإجمالي الكلي:</span>
-                        <span>{{ total_price }} ر.س</span>
-                    </div>
-                </div>
-
-                <a href="/checkout"><button class="checkout-btn">متابعة الدفع والطلب</button></a>
-                <a href="/clear_cart"><button class="clear-btn">تفريغ السلة</button></a>
-
-                {% else %}
-                <div class="empty-state">
-                    <p style="font-size:2.5rem; margin-bottom:0.5rem;">🛍️</p>
-                    <p>السلة فارغة حالياً</p>
-                    <small>أضف بعض المنتجات للبدء بالطلب</small>
-                </div>
-                {% endif %}
-            </div>
+                <button
+                  onClick={openWhatsApp}
+                  style={{
+                    width: "100%",
+                    background: "#25D366",
+                    color: "#ffffff",
+                    border: "none",
+                    padding: "0.75rem",
+                    borderRadius: "8px",
+                    fontWeight: "bold",
+                    cursor: "pointer"
+                  }}
+                >
+                  إرسال الطلب عبر الواتساب
+                </button>
+              </>
+            )}
+          </div>
         </aside>
-    </div>
 
-</body>
-</html>
+      </div>
+    </div>
+  );
+}
