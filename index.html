@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>متجر البقالة الإلكتروني</title>
-    <!-- خط تجاري حديث -->
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>متجر التوصيل السريع</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #2e7d32;
-            --primary-hover: #1b5e20;
-            --bg-color: #f4f6f8;
-            --card-bg: #ffffff;
-            --text-color: #333333;
-            --text-muted: #666666;
-            --border-color: #e0e0e0;
+            --primary: #ff385c;
+            --primary-hover: #e02e4c;
+            --bg: #f7f8fa;
+            --surface: #ffffff;
+            --text-main: #111827;
+            --text-sub: #6b7280;
+            --border: #e5e7eb;
+            --radius: 12px;
+            --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
         }
 
         * {
@@ -25,194 +26,371 @@
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            padding-bottom: 60px;
+            background-color: var(--bg);
+            color: var(--text-main);
+            padding-bottom: 40px;
         }
 
+        /* Navbar Header */
         header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 1rem 2rem;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
         }
 
-        .container {
+        .header-content {
             max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-            display: grid;
-            grid-template-columns: 1fr 320px;
-            gap: 2rem;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            border-bottom: 2rem solid var(--primary-color);
-            padding-bottom: 0.5rem;
-        }
-
-        /* شبكة المنتجات */
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            margin: 0 auto;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             gap: 1.5rem;
         }
 
+        .brand-logo {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .location-picker {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f3f4f6;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .search-box {
+            flex: 1;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 25px;
+            border: 1px solid var(--border);
+            background: #f9fafb;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary);
+            background: var(--surface);
+            box-shadow: 0 0 0 3px rgba(255, 56, 92, 0.1);
+        }
+
+        /* App Container */
+        .app-container {
+            max-width: 1200px;
+            margin: 1.5rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+            .header-content {
+                flex-wrap: wrap;
+            }
+            .search-box {
+                order: 3;
+                max-width: 100%;
+            }
+        }
+
+        /* Categories Ribbon */
+        .categories-ribbon {
+            display: flex;
+            gap: 0.75rem;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            scrollbar-width: none;
+        }
+
+        .category-chip {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 0.6rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 500;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .category-chip.active, .category-chip:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Products Grid */
+        .section-header {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.25rem;
+        }
+
         .product-card {
-            background: var(--card-bg);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            overflow: hidden;
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: 1rem;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s;
         }
 
         .product-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
         }
 
-        .product-image {
+        .badge-fast {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: #10b981;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+        }
+
+        .product-img {
             width: 100%;
-            height: 160px;
-            object-fit: cover;
-            background-color: #eee;
+            height: 140px;
+            object-fit: contain;
+            margin-bottom: 0.75rem;
+            border-radius: 8px;
         }
 
-        .product-info {
-            padding: 1rem;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .product-category {
+        .product-cat {
             font-size: 0.8rem;
-            color: var(--text-muted);
+            color: var(--text-sub);
             margin-bottom: 0.25rem;
         }
 
-        .product-title {
-            font-size: 1.1rem;
+        .product-name {
+            font-size: 1rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
+            color: var(--text-main);
         }
 
-        .product-price {
-            font-size: 1.2rem;
-            color: var(--primary-color);
-            font-weight: 700;
+        .product-footer {
             margin-top: auto;
-            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 0.5rem;
         }
 
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 0.6rem;
+        .price-tag {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .price-tag span {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+        }
+
+        .add-btn {
+            background: var(--primary);
+            color: white;
             border: none;
-            border-radius: 4px;
-            font-weight: 500;
+            padding: 0.5rem 0.9rem;
+            border-radius: 8px;
+            font-weight: 700;
             cursor: pointer;
-            text-align: center;
-            text-decoration: none;
             transition: background 0.2s;
         }
 
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
+        .add-btn:hover {
+            background: var(--primary-hover);
         }
 
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
-        }
-
-        .btn-disabled {
-            background-color: #ccc;
-            color: #666;
+        .out-btn {
+            background: #e5e7eb;
+            color: #9ca3af;
+            border: none;
+            padding: 0.5rem 0.9rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
             cursor: not-allowed;
         }
 
-        /* عربة التسوق */
-        .cart-card {
-            background: var(--card-bg);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            padding: 1.5rem;
+        /* Cart Sidebar */
+        .cart-box {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
             position: sticky;
-            top: 1rem;
+            top: 90px;
         }
 
-        .cart-items {
+        .cart-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .cart-items-list {
             list-style: none;
-            margin: 1rem 0;
-            max-height: 300px;
+            max-height: 280px;
             overflow-y: auto;
+            margin-bottom: 1rem;
         }
 
-        .cart-item {
+        .cart-item-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid var(--border-color);
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
         }
 
-        .cart-total {
-            font-weight: 700;
-            font-size: 1.2rem;
+        .cart-summary {
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .summary-line {
             display: flex;
             justify-content: space-between;
-            margin: 1rem 0;
-            padding-top: 0.5rem;
-            border-top: 2px solid var(--border-color);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
         }
 
-        .empty-cart {
+        .summary-line.total {
+            font-weight: 800;
+            font-size: 1.1rem;
+            border-top: 1px solid var(--border);
+            padding-top: 0.5rem;
+            margin-bottom: 0;
+            color: var(--primary);
+        }
+
+        .checkout-btn {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.85rem;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-bottom: 0.5rem;
+        }
+
+        .clear-btn {
+            width: 100%;
+            background: transparent;
+            color: #ef4444;
+            border: 1px solid #fee2e2;
+            padding: 0.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .empty-state {
             text-align: center;
-            color: var(--text-muted);
-            padding: 1rem 0;
+            color: var(--text-sub);
+            padding: 2rem 0;
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>بقالة الحي - التوصيل السريع للمنزل</h1>
+        <div class="header-content">
+            <a href="#" class="brand-logo">
+                🚀 توصيل السريع
+            </a>
+            
+            <div class="location-picker">
+                📍 <span>التوصيل إلى: المنزل - الرياض</span>
+            </div>
+
+            <div class="search-box">
+                <input type="text" placeholder="ابحث عن منتج، خضار، مشروبات...">
+            </div>
+        </div>
     </header>
 
-    <div class="container">
-        <!-- قسم المنتجات -->
+    <div class="app-container">
         <main>
-            <h2 class="section-title">المنتجات المتاحة</h2>
+            <!-- شريط التصنيفات -->
+            <div class="categories-ribbon">
+                <div class="category-chip active">الكل</div>
+                <div class="category-chip">مشروبات ومياه</div>
+                <div class="category-chip">حلويات وسناك</div>
+                <div class="category-chip">مخبوزات</div>
+                <div class="category-chip">فواكه وخضار</div>
+                <div class="category-chip">منتجات الألبان</div>
+            </div>
+
+            <h2 class="section-header">الأكثر طلباً اليوم</h2>
+
             <div class="products-grid">
                 {% for p in products %}
                 <div class="product-card">
-                    <img src="{{ p.image_url if p.image_url else 'https://via.placeholder.com/200' }}" alt="{{ p.name }}" class="product-image">
-                    <div class="product-info">
-                        <span class="product-category">{{ p.category }}</span>
-                        <h3 class="product-title">{{ p.name }}</h3>
-                        <div class="product-price">{{ p.price }} ر.س</div>
+                    <span class="badge-fast">⚡ 15 دقيقة</span>
+                    <img src="{{ p.image_url if p.image_url else 'https://via.placeholder.com/150' }}" alt="{{ p.name }}" class="product-img">
+                    <span class="product-cat">{{ p.category }}</span>
+                    <h3 class="product-name">{{ p.name }}</h3>
+                    
+                    <div class="product-footer">
+                        <div class="price-tag">{{ p.price }} <span>ر.س</span></div>
                         
                         {% if p.in_stock %}
                         <form action="/add_to_cart" method="POST">
                             <input type="hidden" name="product_id" value="{{ p.id }}">
-                            <button type="submit" class="btn btn-primary">+ إضافة للسلة</button>
+                            <button type="submit" class="add-btn">+ إضافة</button>
                         </form>
                         {% else %}
-                        <button class="btn btn-disabled" disabled>غير متوفر حالياً</button>
+                        <button class="out-btn" disabled>نفذت الكمية</button>
                         {% endif %}
                     </div>
                 </div>
@@ -220,34 +398,49 @@
             </div>
         </main>
 
-        <!-- قسم عربة التسوق -->
         <aside>
-            <div class="cart-card">
-                <h2 class="section-title" style="margin-bottom:0.5rem;">عربة التسوق</h2>
-                
+            <div class="cart-box">
+                <div class="cart-title">
+                    <span>🛒 سلة الطلبات</span>
+                </div>
+
                 {% if cart %}
-                <ul class="cart-items">
+                <ul class="cart-items-list">
                     {% for id, item in cart.items() %}
-                    <li class="cart-item">
+                    <li class="cart-item-row">
                         <div>
                             <div><strong>{{ item.name }}</strong></div>
-                            <small class="text-muted">{{ item.price }} ر.س × {{ item.qty }}</small>
+                            <small style="color: var(--text-sub);">العدد: {{ item.qty }}</small>
                         </div>
-                        <div>{{ item.price * item.qty }} ر.س</div>
+                        <div style="font-weight:700;">{{ item.price * item.qty }} ر.س</div>
                     </li>
                     {% endfor %}
                 </ul>
 
-                <div class="cart-total">
-                    <span>الإجمالي:</span>
-                    <span>{{ total_price }} ر.س</span>
+                <div class="cart-summary">
+                    <div class="summary-line">
+                        <span>المجموع:</span>
+                        <span>{{ total_price }} ر.س</span>
+                    </div>
+                    <div class="summary-line">
+                        <span>رسوم التوصيل:</span>
+                        <span style="color:#10b981;">مجاناً</span>
+                    </div>
+                    <div class="summary-line total">
+                        <span>الإجمالي الكلي:</span>
+                        <span>{{ total_price }} ر.س</span>
+                    </div>
                 </div>
 
-                <a href="/checkout" class="btn btn-primary" style="margin-bottom: 0.5rem;">إتمام الطلب الآن</a>
-                <a href="/clear_cart" class="btn" style="background:#f44336; color:white;">تفريغ السلة</a>
-                
+                <a href="/checkout"><button class="checkout-btn">متابعة الدفع والطلب</button></a>
+                <a href="/clear_cart"><button class="clear-btn">تفريغ السلة</button></a>
+
                 {% else %}
-                <p class="empty-cart">السلة فارغة حالياً</p>
+                <div class="empty-state">
+                    <p style="font-size:2.5rem; margin-bottom:0.5rem;">🛍️</p>
+                    <p>السلة فارغة حالياً</p>
+                    <small>أضف بعض المنتجات للبدء بالطلب</small>
+                </div>
                 {% endif %}
             </div>
         </aside>
