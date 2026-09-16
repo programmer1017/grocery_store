@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <!-- قائمة المنتجات -->
+    <div class="col-md-8">
+        <h3>المنتجات المتاحة</h3>
+        <div class="row">
+            {% for p in products %}
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 shadow-sm">
+                    <img src="{{ p.image }}" class="card-img-top" alt="{{ p.name }}">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">{{ p.name }}</h5>
+                        <p class="text-muted mb-1">{{ p.category }}</p>
+                        <p class="fw-bold text-success">{{ p.price }} ر.س</p>
+                        
+                        {% if p.in_stock %}
+                            <a href="/add_to_cart/{{ p.id }}" class="btn btn-primary btn-sm w-100">إضافة للسلة +</a>
+                        {% else %}
+                            <button class="btn btn-secondary btn-sm w-100" disabled>غير متوفر حالياً</button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- سلة المشتريات -->
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">🛍️ عربة التسوق</h5>
+            </div>
+            <div class="card-body">
+                {% if cart %}
+                    <ul class="list-group mb-3">
+                        {% for id, item in cart.items() %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ item.name }}</strong>
+                                <br><small class="text-muted">{{ item.price }} ر.س × {{ item.qty }}</small>
+                            </div>
+                            <span class="badge bg-primary rounded-pill">{{ item.price * item.qty }} ر.س</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <hr>
+                    <div class="d-flex justify-content-between fw-bold fs-5 mb-3">
+                        <span>الإجمالي:</span>
+                        <span class="text-success">{{ total_price }} ر.س</span>
+                    </div>
+                    <button class="btn btn-success w-100 mb-2">إتمام الطلب الآن</button>
+                    <a href="/clear_cart" class="btn btn-outline-danger btn-sm w-100">تفريغ السلة</a>
+                {% else %}
+                    <p class="text-center text-muted my-3">السلة فارغة حالياً</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
